@@ -2,64 +2,65 @@ import streamlit as st
 import requests
 from datetime import datetime
 
-# --- 页面配置 ---
-st.set_page_config(page_title="全球天气雷达", page_icon="🌤️")
+# --- Page Config ---
+st.set_page_config(page_title="Global Weather Radar", page_icon="🌤️")
 
-# 标题
-st.title("🌍 全球实时天气雷达")
-st.caption("Powered by OpenWeatherMap API | Developed by Yang")
+# --- Title Area ---
+st.title("🌍 Global Real-Time Weather Radar")
+st.caption("Powered by OpenWeatherMap API | Developed by Yang-Tech-Lab")
 
-# --- 侧边栏：输入区 ---
-st.sidebar.header("⚙️ 控制台")
-city = st.sidebar.text_input("请输入城市拼音 (如 Beijing):", "Shanghai")
-check_btn = st.sidebar.button("🚀 立即查询")
+# --- Sidebar ---
+st.sidebar.header("⚙️ Control Panel")
+city = st.sidebar.text_input("Enter City Name (e.g., London):", "New York")
+check_btn = st.sidebar.button("🚀 Search Now")
 
-# --- 核心逻辑 ---
+# --- Core Logic ---
 api_key = "103104f0c64435943e54807674a02704" # 你的 Key
+# 注意：这里去掉了 lang=zh_cn，这样 API 也会返回英文的天气描述 (e.g. Clear Sky)
 base_url = "http://api.openweathermap.org/data/2.5/weather"
 
 if check_btn:
-    with st.spinner('正在连接卫星...'):
+    with st.spinner('Connecting to satellite...'):
         try:
-            # 发送请求
-            url = f"{base_url}?q={city}&appid={api_key}&units=metric&lang=zh_cn"
+            # Request Data
+            url = f"{base_url}?q={city}&appid={api_key}&units=metric"
             response = requests.get(url)
             
             if response.status_code == 200:
                 data = response.json()
                 
-                # 提取数据
+                # Extract Data
                 temp = data['main']['temp']
                 feels_like = data['main']['feels_like']
-                desc = data['weather'][0]['description']
+                desc = data['weather'][0]['description'].title() # 首字母大写
                 humidity = data['main']['humidity']
                 wind = data['wind']['speed']
-                icon_code = data['weather'][0]['icon'] # 获取天气图标代码
+                icon_code = data['weather'][0]['icon']
                 
-                # --- 展示数据 ---
+                # --- Display Data ---
                 
-                # 1. 显示天气图标 (从官方获取图片)
+                # 1. Weather Icon (Fixed HTTPS issue)
                 icon_url = f"https://openweathermap.org/img/wn/{icon_code}@4x.png"
                 st.image(icon_url, width=100)
                 
-                # 2. 显示大数字
+                # 2. Key Metrics
                 col1, col2, col3 = st.columns(3)
-                col1.metric("当前温度", f"{temp}°C", f"体感 {feels_like}°C")
-                col2.metric("湿度", f"{humidity}%")
-                col3.metric("风速", f"{wind} m/s")
+                col1.metric("Temperature", f"{temp}°C", f"Feels like {feels_like}°C")
+                col2.metric("Humidity", f"{humidity}%")
+                col3.metric("Wind Speed", f"{wind} m/s")
                 
-                # 3. 显示天气描述
-                st.success(f"当前 {city} 的天气状况：**{desc}**")
+                # 3. Status Message
+                st.success(f"Current weather in **{city}**: **{desc}**")
                 
-                # 4. 显示原始数据 (给极客看)
-                with st.expander("查看原始 JSON 数据"):
+                # 4. Raw Data (For Geeks)
+                with st.expander("View Raw JSON Data"):
                     st.json(data)
                     
             else:
-                st.error("❌ 找不到该城市，请检查拼音！")
+                st.error("❌ City not found! Please check the spelling.")
                 
         except Exception as e:
-            st.error(f"网络错误: {e}")
+            st.error(f"Connection Error: {e}")
 
 else:
-    st.info("👈 请在左侧输入城市名并点击查询")
+    st.info("👈 Please enter a city name in the sidebar to start.")
